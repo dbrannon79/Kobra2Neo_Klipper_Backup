@@ -1,0 +1,131 @@
+STEP 1 - Enter the following commands at the machine terminal
+su
+login
+apt-get install sudo
+
+ip a s
+<get ip address 
+
+STEP 2 - Open an SSH connection if not done already
+Use putty or from another linux terminal and log in
+linux terminal enter ssh (username)@(ip address)
+
+su
+
+sudo apt install command-not-found apt-file
+sudo apt-file update && sudo update-command-not-found
+
+/usr/sbin/usermod
+
+export PATH=$PATH:/usr/sbin
+
+sudo usermod -aG sudo username   <change with your username
+groups username <change with your username  make sure sudo is listed in the groups
+
+
+STEP 3 - Permanatly add the path above to the enviroment variable
+edit
+
+nano ~/.bashrc
+add the following line to the bottom of the file
+export PATH="/sbin:/usr/sbin:$PATH"
+
+nano ~/.profile
+add the following line to the bottom of the file
+export PATH="/sbin:/usr/sbin:$PATH"
+
+exit and reboot,  once rebooted log back in to an SSH connection
+
+STEP 4 - INSTALL MAINLINE KLIPPER
+Time for the fun stuff! Now we shall install KIAUH, Klipper, Moonraker, etc. Please SSH into your printer and then do the steps below.
+Please note this needs a stable connection since it will be downloading everything.
+
+First, we will update the OS:
+
+sudo apt update && sudo apt upgrade
+Then install git (which might already be installed) and KIAUH with the following commands:
+
+sudo apt-get update && sudo apt-get install git -y
+cd ~ && git clone https://github.com/dw-0/kiauh.git
+Start KIAUH with the following command :
+
+./kiauh/kiauh.sh
+Install Klipper, Moonraker, Mainsail, Fluidd, and Crowsnest (in this order, also check tip below) via KIAUH.
+
+Note:  choose port 81 for Mainsail and port 82 for Fluidd, this way you can leave port 80 open for future use
+
+So run KIAUH and choose: option '1) [Install]' and install those items (using default options, download recommended macros; Yes).
+Crowsnest install asks to reboot the printer, please do so.
+Tip
+
+If you are using an HDMI screen, now is the time to install klipperscreen, do this BEFORE crowsnest so you dont have to reboot twice.
+
+STEP 5 - Install KAMP for adaptive mesh and purging
+more details on the installation can be found on this website
+https://github.com/kyleisah/Klipper-Adaptive-Meshing-Purging
+
+Enter the following commands in terminal (you can copy them all and paste them)
+
+ cd
+
+ git clone https://github.com/kyleisah/Klipper-Adaptive-Meshing-Purging.git
+
+ ln -s ~/Klipper-Adaptive-Meshing-Purging/Configuration printer_data/config/KAMP
+
+ cp ~/Klipper-Adaptive-Meshing-Purging/Configuration/KAMP_Settings.cfg ~/printer_data/config/KAMP_Settings.cfg
+
+Open your moonraker.conf file and add this configuration
+
+by this time you should open the ip address with the port 81 or 82 for Mainsail or Fluidd to edit configuration files
+
+add the following to moonracker.conf
+
+[update_manager Klipper-Adaptive-Meshing-Purging]
+type: git_repo
+channel: dev
+path: ~/Klipper-Adaptive-Meshing-Purging
+origin: https://github.com/kyleisah/Klipper-Adaptive-Meshing-Purging.git
+managed_services: klipper
+primary_branch: main
+
+ STEP 6 - Install Numpy (needed for input shaping)
+
+sudo apt update
+sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
+~/klippy-env/bin/pip install -v numpy
+Install Moonraker-timelapse
+
+See https://github.com/mainsail-crew/moonraker-timelapse for detailed information.
+First install moonraker-timelapse:
+cd ~/
+git clone https://github.com/mainsail-crew/moonraker-timelapse.git
+cd ~/moonraker-timelapse
+make install
+Then edit your ~/printer_data/config/moonraker.conf and add the following lines:
+[update_manager timelapse]
+type: git_repo
+primary_branch: main
+path: ~/moonraker-timelapse
+origin: https://github.com/mainsail-crew/moonraker-timelapse.git
+managed_services: klipper moonraker
+
+[timelapse]
+##   Following basic configuration is default to most images and don't need
+##   to be changed in most scenarios. Only uncomment and change it if your
+##   Image differ from standart installations. In most common scenarios 
+##   a User only need [timelapse] in their configuration.
+output_path: ~/timelapse/                ##   Directory where the generated video will be saved
+frame_path: /tmp/timelapse/              ##   Directory where the temporary frames are saved
+ffmpeg_binary_path: /usr/bin/ffmpeg      ##   Directory where ffmpeg is installed
+After this you can configure the timelapse in your Mainsail Interface Settings.
+Check your slicer (e.g. Orca Slicer), your printer profile should have the timelapse frame g-code. You will find this under:
+-> Printer settings
+-> Machine G-Code
+-> 'Before layer change G-code'
+-> If not in there, add: TIMELAPSE_TAKE_FRAME
+You have now installed mainline Klipper with the Mainsail web interface (and addons)! But there is more to be done to get it all working properly..
+
+If you haven't rebooted after installing Crowsnest:
+sudo reboot
+After the board has rebooted, in your browser go to the Mainsail web interface (via the IP address or hostname) and check if it's running.
+It will give an error since we still have to put our backed-up printer.cfg back.
